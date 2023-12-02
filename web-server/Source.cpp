@@ -8,6 +8,8 @@
 #include <ws2tcpip.h>
 #pragma comment(lib, "WS2_32.lib")
 
+#include "mSocket.h"
+
 
 
 
@@ -37,80 +39,21 @@ int main()
     int port;
     std::cout << "Enter the port : ";
     std::cin >> port;
-
-    WSADATA wsaData;
-    int iResult;
-
-    // Initialize Winsock
-    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (iResult != 0) {
-        std::cerr << "WSAStartup failed: " << iResult << std::endl;
-        return 1;
-    }
-
-    sockaddr_in s_in;
-    s_in.sin_family = AF_INET;
-    s_in.sin_port = htons(port);
-    InetPton(AF_INET, L"127.0.0.1", &s_in.sin_addr.s_addr);
+    std::string ipaddress = "127.0.0.1";
 
 
-    SOCKET listenSocket = INVALID_SOCKET;
-    // Create a SOCKET for the server to listen for client connections
-    listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (listenSocket == INVALID_SOCKET) {
-        std::cerr << "Error creating socket: " << WSAGetLastError() << std::endl;
-        WSACleanup();
-        return 1;
-    }
-
-
-    if (bind(listenSocket, (LPSOCKADDR)&s_in, sizeof(s_in)) == SOCKET_ERROR)
-    {
-        //We couldn't bind (this will happen if you try to bind to the same  
-        //socket more than once)
-
-        std::cout << "Binding error";
-        return false;
-    }
-
-
-    // Listen for incoming connection requests
-    iResult = listen(listenSocket, SOMAXCONN);
-    if (iResult == SOCKET_ERROR) {
-        std::cerr << "Listen failed with error: " << WSAGetLastError() << std::endl;
-        closesocket(listenSocket);
-        WSACleanup();
-        return 1;
-    }
-
-
-    std::cout << "Server listening on port " << port << std::endl;
-
+    mSocket listenSocket(ipaddress, port);
     SOCKET clientSocket;
-
-
-    int sendBufferSize;
-    int receiveBufferSize;
-    int optlen = sizeof(sendBufferSize);
-
-    // Get send buffer size
-    if (getsockopt(listenSocket, SOL_SOCKET, SO_SNDBUF, (char*)&sendBufferSize, &optlen) == -1) {
-        std::cerr << "Error getting send buffer size: " << WSAGetLastError() << std::endl;
-        // Handle error here
-    }
-    else {
-        std::cout << "Send buffer size = " << sendBufferSize << " bytes" << std::endl;
-    }
 
 
     while (true) {
 
 
         // Accept a client socket
-        clientSocket = accept(listenSocket, NULL, NULL);
+        clientSocket = accept(listenSocket.s, NULL, NULL);
         if (clientSocket == INVALID_SOCKET) {
             std::cerr << "Accept failed with error: " << WSAGetLastError() << std::endl;
-            closesocket(listenSocket);
+            closesocket(listenSocket.s);
             WSACleanup();
             return 1;
         }
@@ -135,6 +78,7 @@ int main()
 
                 std::string response = creatHTML();
                 std::cout << response.length() << std::endl;
+                std::cout << bytesReceived << std::endl;
                 send(clientSocket, response.c_str(), response.length(), 0);
                 closesocket(clientSocket);
             }
