@@ -61,7 +61,7 @@ bool mSocket::listenSocket()
 int mSocket::getSendBufferSize()
 {
 	int sendBufferSize;
-	int receiveBufferSize;
+	//int receiveBufferSize;
 	int optlen = sizeof(sendBufferSize);
 
 	// Get send buffer size
@@ -74,6 +74,21 @@ int mSocket::getSendBufferSize()
 	//}
 
 	return sendBufferSize;
+}
+
+SOCKET mSocket::accept_client()
+{
+	if (s == INVALID_SOCKET) {
+		std::cerr << "Broke socket can't Accept client: " << WSAGetLastError() << std::endl;
+		return INVALID_SOCKET;
+	}
+	// Accept a client socket
+	SOCKET clientSocket = accept(s, NULL, NULL);
+	if (clientSocket == INVALID_SOCKET) {
+		std::cerr << "Accept failed with error: " << WSAGetLastError() << std::endl;
+		return INVALID_SOCKET;
+	}
+	return clientSocket;
 }
 
 mSocket::mSocket(std::string, int port)

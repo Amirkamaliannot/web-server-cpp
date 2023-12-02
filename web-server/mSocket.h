@@ -1,11 +1,11 @@
 #pragma once
 
 #include <iostream>
-#include <sys/types.h>
 #include <WinSock2.h>
 #include <ws2tcpip.h>
-#include <cstring>
 #pragma comment(lib, "WS2_32.lib")
+
+#include "clientSocket.h"
 
 
 class mSocket
@@ -29,5 +29,6 @@ public:
     mSocket(std::string ip, int port);
 
     int getSendBufferSize();
+    SOCKET accept_client();
 };
 
